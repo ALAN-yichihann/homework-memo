@@ -152,7 +152,8 @@ class App:
                          font=("Microsoft YaHei UI", self.font_size), spacing1=3, spacing3=5 )
         editor.pack(fill="both", expand=True)
         editor.bind("<<Modified>>", self._modified)
-        editor.bind("<KeyRelease>", lambda _e, s=subject: self._fit_text(s))`r`n        editor.bind("<Configure>", lambda _e, s=subject: self.root.after_idle(lambda: self._fit_text(s)))
+        editor.bind("<KeyRelease>", lambda _e, s=subject: self._fit_text(s))
+        editor.bind("<Configure>", lambda _e, s=subject: self.root.after_idle(lambda: self._fit_text(s)))
         self.editors[subject] = editor
 
     def _button(self, parent, kind, label, command, tooltip):
@@ -391,6 +392,7 @@ class App:
             messagebox.showerror("尚未保存", "作业保存失败，暂未退出，避免丢失内容。", parent=self.ball)
             return
         self.root.destroy()
+
 
 
 
