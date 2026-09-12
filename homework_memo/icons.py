@@ -39,7 +39,8 @@ def draw(canvas, kind: str, color: str = "#305d50") -> None:
         line(48, 35, 55, 41, 48, 47, width=3.5)
     elif kind in ("power", "power-off"):
         canvas.create_arc(15 * scale, 16 * scale, 49 * scale, 50 * scale,
-                          start=45, extent=270, style="arc", outline=color, width=2.6 * scale)
+                          start=135, extent=270, style="arc", outline=color, width=2.6 * scale)
         line(32, 11, 32, 32)
         if kind == "power-off":
             line(13, 53, 51, 11)
+

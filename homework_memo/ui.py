@@ -146,15 +146,11 @@ class App:
                  font=("Microsoft YaHei UI", 16, "bold"), padx=16, pady=9).pack(fill="x")
         body = tk.Frame(frame, bg=PAPER)
         body.pack(fill="both", expand=True, padx=(12, 4), pady=(0, 10))
-        scrollbar = tk.Scrollbar(body, width=16, relief="flat")
-        scrollbar.pack(side="right", fill="y")
         editor = tk.Text(body, wrap="word", undo=True, maxundo=100, bg=PAPER, fg=INK,
                          insertbackground=ACCENT, selectbackground="#d8e6d7", relief="flat",
                          bd=0, highlightthickness=0, width=1, height=1, padx=4,
-                         font=("Microsoft YaHei UI", self.font_size), spacing1=3, spacing3=5,
-                         yscrollcommand=scrollbar.set)
+                         font=("Microsoft YaHei UI", self.font_size), spacing1=3, spacing3=5 )
         editor.pack(fill="both", expand=True)
-        scrollbar.configure(command=editor.yview)
         editor.bind("<<Modified>>", self._modified)
         self.editors[subject] = editor
 
@@ -178,7 +174,7 @@ class App:
 
     def _build_ball(self):
         self.ball = tk.Toplevel(self.root)
-        self.ball.overrideredirect(True)
+        self.ball.overrideredirect(True)\n        self.ball.wm_attributes("-topmost", True)
         self.ball.configure(bg="#ff00ff")
         self.ball.wm_attributes("-transparentcolor", "#ff00ff")
         self.ball_canvas = tk.Canvas(self.ball, width=88, height=88,
@@ -275,7 +271,7 @@ class App:
         self.visible = True
         self.editing = True
         self._apply_mode()
-        self.board.deiconify()
+        self.board.deiconify()\n        self.board.wm_attributes("-topmost", True)
         self.board.lift()
         self.ball.lift()
         windows.activate(self.board)
@@ -377,4 +373,5 @@ class App:
             messagebox.showerror("尚未保存", "作业保存失败，暂未退出，避免丢失内容。", parent=self.ball)
             return
         self.root.destroy()
+
 
