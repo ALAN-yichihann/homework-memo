@@ -151,7 +151,7 @@ class App:
                          bd=0, highlightthickness=0, width=1, height=1, padx=4,
                          font=("Microsoft YaHei UI", self.font_size), spacing1=3, spacing3=5 )
         editor.pack(fill="both", expand=True)
-        editor.bind("<<Modified>>", self._modified)
+        editor.bind("<<Modified>>", self._modified)\n        editor.bind("<KeyRelease>", lambda _e, s=subject: self._fit_text(s))
         self.editors[subject] = editor
 
     def _button(self, parent, kind, label, command, tooltip):
@@ -174,7 +174,8 @@ class App:
 
     def _build_ball(self):
         self.ball = tk.Toplevel(self.root)
-        self.ball.overrideredirect(True)\n        self.ball.wm_attributes("-topmost", True)
+        self.ball.overrideredirect(True)
+        self.ball.wm_attributes("-topmost", True)\n        self.ball.attributes("-alpha", 1.0)
         self.ball.configure(bg="#ff00ff")
         self.ball.wm_attributes("-transparentcolor", "#ff00ff")
         self.ball_canvas = tk.Canvas(self.ball, width=88, height=88,
@@ -271,7 +272,8 @@ class App:
         self.visible = True
         self.editing = True
         self._apply_mode()
-        self.board.deiconify()\n        self.board.wm_attributes("-topmost", True)
+        self.board.deiconify()
+        self.board.wm_attributes("-topmost", True)
         self.board.lift()
         self.ball.lift()
         windows.activate(self.board)
@@ -352,7 +354,7 @@ class App:
         self._layout()
         if self.instance and self.instance.requested():
             self.show()
-        if windows.foreign_foreground():
+        self.ball.deiconify()\n        self.ball.lift()\n        if windows.foreign_foreground():
             for tip in self.tips:
                 tip.hide()
             # 先放球，再放面板，确保球仍在本应用面板上方。
@@ -373,5 +375,6 @@ class App:
             messagebox.showerror("尚未保存", "作业保存失败，暂未退出，避免丢失内容。", parent=self.ball)
             return
         self.root.destroy()
+
 
 

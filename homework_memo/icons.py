@@ -30,7 +30,7 @@ def draw(canvas, kind: str, color: str = "#305d50") -> None:
         line(32, 43, 32, 50)
         line(23, 50, 41, 50)
     elif kind == "export":
-        polygon(23, 10, 46, 10, 46, 33, 52, 33, 52, 51, 12, 51, 12, 21, 23, 10)
+        polygon(18, 10, 50, 10, 50, 54, 14, 54, 14, 18, 18, 10)
         line(23, 10, 23, 21, 12, 21)
         line(21, 30, 37, 30, width=1.5)
         line(21, 36, 32, 36, width=1.5)
@@ -43,4 +43,5 @@ def draw(canvas, kind: str, color: str = "#305d50") -> None:
         line(32, 11, 32, 32)
         if kind == "power-off":
             line(13, 53, 51, 11)
+
 
