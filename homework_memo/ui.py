@@ -151,7 +151,8 @@ class App:
                          bd=0, highlightthickness=0, width=1, height=1, padx=4,
                          font=("Microsoft YaHei UI", self.font_size), spacing1=3, spacing3=5 )
         editor.pack(fill="both", expand=True)
-        editor.bind("<<Modified>>", self._modified)\n        editor.bind("<KeyRelease>", lambda _e, s=subject: self._fit_text(s))
+        editor.bind("<<Modified>>", self._modified)
+        editor.bind("<KeyRelease>", lambda _e, s=subject: self._fit_text(s))
         self.editors[subject] = editor
 
     def _button(self, parent, kind, label, command, tooltip):
@@ -175,7 +176,8 @@ class App:
     def _build_ball(self):
         self.ball = tk.Toplevel(self.root)
         self.ball.overrideredirect(True)
-        self.ball.wm_attributes("-topmost", True)\n        self.ball.attributes("-alpha", 1.0)
+        self.ball.wm_attributes("-topmost", True)
+        self.ball.attributes("-alpha", 1.0)
         self.ball.configure(bg="#ff00ff")
         self.ball.wm_attributes("-transparentcolor", "#ff00ff")
         self.ball_canvas = tk.Canvas(self.ball, width=88, height=88,
@@ -288,6 +290,18 @@ class App:
         self.visible = False
         self.board.withdraw()
 
+    def _fit_text(self, subject):
+        """依据末行像素位置自动缩小字号，文本区域不滚动。"""
+        editor = self.editors.get(subject)
+        if editor is None or editor.winfo_height() <= 1:
+            return
+        size = self.font_size
+        while size > 12:
+            editor.configure(font=("Microsoft YaHei UI", size))
+            info = editor.dlineinfo("end-1c")
+            if info is None or info[1] + info[3] <= editor.winfo_height() - 8:
+                break
+            size -= 1
     def _apply_mode(self):
         for editor in self.editors.values():
             editor.configure(state="normal" if self.editing and not self.read_error else "disabled")
@@ -354,7 +368,9 @@ class App:
         self._layout()
         if self.instance and self.instance.requested():
             self.show()
-        self.ball.deiconify()\n        self.ball.lift()\n        if windows.foreign_foreground():
+        self.ball.deiconify()
+        self.ball.lift()
+        if windows.foreign_foreground():
             for tip in self.tips:
                 tip.hide()
             # 先放球，再放面板，确保球仍在本应用面板上方。
@@ -375,6 +391,7 @@ class App:
             messagebox.showerror("尚未保存", "作业保存失败，暂未退出，避免丢失内容。", parent=self.ball)
             return
         self.root.destroy()
+
 
 
 
