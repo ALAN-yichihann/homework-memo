@@ -72,6 +72,10 @@ def lower_window(widget) -> None:
     user32.SetWindowPos(hwnd(widget), 1, 0, 0, 0, 0, 0x0013)
 
 
+
+def keep_topmost(widget) -> None:
+    """用 Win32 重新声明置顶，抵抗任务栏“显示桌面”对窗口状态的重置。"""
+    user32.SetWindowPos(hwnd(widget), -1, 0, 0, 0, 0, 0x0013)
 def activate(widget) -> None:
     user32.SetForegroundWindow(hwnd(widget))
 
@@ -144,4 +148,5 @@ class SingleInstance:
     def close(self):
         kernel32.CloseHandle(self.event)
         kernel32.CloseHandle(self.mutex)
+
 
