@@ -105,7 +105,7 @@ class App:
         self.ball_canvas.bind("<Button-1>",lambda _e:self.hide() if self.visible else self.show())
         menu=tk.Menu(self.ball,tearoff=False,font=("Microsoft YaHei UI",11)); menu.add_command(label="打开编辑窗口",command=self.show); menu.add_separator(); menu.add_command(label="退出作业记录",command=self.quit)
         def popup(event):
-            try: menu.tk_popup(event.x_root,event.y_root)
+            try: menu.tk_popup(event.x_root,event.y_root); windows.keep_topmost(menu)
             finally: menu.grab_release()
         self.ball_canvas.bind("<Button-3>",popup); self.tips.append(ToolTip(self.ball_canvas,lambda:"单击打开或收起作业\n右键可退出程序"))
 
@@ -213,3 +213,4 @@ class App:
     def quit(self):
         if not self.save():messagebox.showerror("尚未保存","作业保存失败，暂未退出，避免丢失内容。",parent=self.ball);return
         self.root.destroy()
+
