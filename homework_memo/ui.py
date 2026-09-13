@@ -214,3 +214,4 @@ class App:
         if not self.save():messagebox.showerror("尚未保存","作业保存失败，暂未退出，避免丢失内容。",parent=self.ball);return
         self.root.destroy()
 
+

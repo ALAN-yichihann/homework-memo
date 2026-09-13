@@ -66,6 +66,10 @@ def keep_topmost(widget) -> None:
     user32.ShowWindow(handle, 4)
     user32.SetWindowPos(handle, -1, 0, 0, 0, 0, 0x0013)
 
+def keep_popup_topmost(widget) -> None:
+    """仅提升原生弹出菜单，不调用 ShowWindow，避免菜单闪烁。"""
+    user32.SetWindowPos(hwnd(widget), -1, 0, 0, 0, 0, 0x0013)
+
 def activate(widget) -> None:
     user32.SetForegroundWindow(hwnd(widget))
 
@@ -127,3 +131,4 @@ class SingleInstance:
     def close(self):
         kernel32.CloseHandle(self.event)
         kernel32.CloseHandle(self.mutex)
+
