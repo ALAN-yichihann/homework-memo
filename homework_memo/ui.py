@@ -105,8 +105,15 @@ class App:
         self.ball_canvas.bind("<Button-1>",lambda _e:self.hide() if self.visible else self.show())
         menu=tk.Menu(self.ball,tearoff=False,font=("Microsoft YaHei UI",11)); menu.add_command(label="打开编辑窗口",command=self.show); menu.add_separator(); menu.add_command(label="退出作业记录",command=self.quit)
         def popup(event):
-            try: menu.tk_popup(event.x_root,event.y_root); windows.keep_topmost(menu)
-            finally: menu.grab_release()
+            try:
+                menu.tk_popup(event.x_root, event.y_root)
+                def pin_menu():
+                    if menu.winfo_ismapped():
+                        windows.keep_popup_topmost(menu)
+                        self.root.after(50, pin_menu)
+                pin_menu()
+            finally:
+                menu.grab_release()
         self.ball_canvas.bind("<Button-3>",popup); self.tips.append(ToolTip(self.ball_canvas,lambda:"单击打开或收起作业\n右键可退出程序"))
 
     def _layout(self):
