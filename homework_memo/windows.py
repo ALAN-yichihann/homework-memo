@@ -1,7 +1,5 @@
-"""Windows 工作区、自启、窗口层级与单实例接口。"""
-
+﻿"""Windows 工作区、自启、窗口层级与单实例接口。"""
 from __future__ import annotations
-
 import ctypes
 import os
 import subprocess
@@ -16,7 +14,7 @@ RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 shell32 = ctypes.WinDLL("shell32", use_last_error=True)
-
+ole32 = ctypes.WinDLL("ole32")
 
 def _declare(library, name, arguments, result):
     function = getattr(library, name)
@@ -24,24 +22,20 @@ def _declare(library, name, arguments, result):
     function.restype = result
     return function
 
-
 _declare(user32, "SystemParametersInfoW", [wt.UINT, wt.UINT, wt.LPVOID, wt.UINT], wt.BOOL)
 _declare(user32, "GetAncestor", [wt.HWND, wt.UINT], wt.HWND)
 _declare(user32, "GetForegroundWindow", [], wt.HWND)
 _declare(user32, "GetWindowThreadProcessId", [wt.HWND, ctypes.POINTER(wt.DWORD)], wt.DWORD)
-_declare(user32, "SetWindowPos", [wt.HWND, wt.HWND, ctypes.c_int, ctypes.c_int,
-                               ctypes.c_int, ctypes.c_int, wt.UINT], wt.BOOL)
+_declare(user32, "SetWindowPos", [wt.HWND, wt.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, wt.UINT], wt.BOOL)
+_declare(user32, "ShowWindow", [wt.HWND, ctypes.c_int], wt.BOOL)
 _declare(user32, "SetForegroundWindow", [wt.HWND], wt.BOOL)
 _declare(kernel32, "CreateMutexW", [wt.LPVOID, wt.BOOL, wt.LPCWSTR], wt.HANDLE)
 _declare(kernel32, "CreateEventW", [wt.LPVOID, wt.BOOL, wt.BOOL, wt.LPCWSTR], wt.HANDLE)
 _declare(kernel32, "SetEvent", [wt.HANDLE], wt.BOOL)
 _declare(kernel32, "WaitForSingleObject", [wt.HANDLE, wt.DWORD], wt.DWORD)
 _declare(kernel32, "CloseHandle", [wt.HANDLE], wt.BOOL)
-_declare(shell32, "SHGetKnownFolderPath", [wt.LPVOID, wt.DWORD, wt.HANDLE,
-                                       ctypes.POINTER(ctypes.c_void_p)], ctypes.c_long)
-ole32 = ctypes.WinDLL("ole32")
+_declare(shell32, "SHGetKnownFolderPath", [wt.LPVOID, wt.DWORD, wt.HANDLE, ctypes.POINTER(ctypes.c_void_p)], ctypes.c_long)
 _declare(ole32, "CoTaskMemFree", [wt.LPVOID], None)
-
 
 def enable_dpi() -> None:
     try:
@@ -49,39 +43,33 @@ def enable_dpi() -> None:
     except AttributeError:
         _declare(user32, "SetProcessDPIAware", [], wt.BOOL)()
 
-
 def work_area() -> tuple[int, int, int, int]:
     rect = wt.RECT()
     if not user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
         raise ctypes.WinError(ctypes.get_last_error())
     return rect.left, rect.top, rect.right, rect.bottom
 
-
 def hwnd(widget) -> int:
     return user32.GetAncestor(widget.winfo_id(), 2)
-
 
 def foreign_foreground() -> bool:
     process = wt.DWORD()
     user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), ctypes.byref(process))
     return process.value != os.getpid()
 
-
 def lower_window(widget) -> None:
-    # HWND_BOTTOM + 不移动、不缩放、不激活：其他软件始终可以盖住本应用。
     user32.SetWindowPos(hwnd(widget), 1, 0, 0, 0, 0, 0x0013)
 
-
-
 def keep_topmost(widget) -> None:
-    """用 Win32 重新声明置顶，抵抗任务栏“显示桌面”对窗口状态的重置。"""
-    user32.SetWindowPos(hwnd(widget), -1, 0, 0, 0, 0, 0x0013)
+    """恢复“显示桌面”隐藏的窗口，并保持置顶但不抢焦点。"""
+    handle = hwnd(widget)
+    user32.ShowWindow(handle, 4)
+    user32.SetWindowPos(handle, -1, 0, 0, 0, 0, 0x0013)
+
 def activate(widget) -> None:
     user32.SetForegroundWindow(hwnd(widget))
 
-
 def desktop_directory() -> Path:
-    """读取系统已知文件夹，兼容 OneDrive 及用户重定向的桌面。"""
     folder_id = ctypes.create_string_buffer(uuid.UUID("B4BFCC3A-DB2C-424C-B029-7FE99A87C641").bytes_le)
     pointer = ctypes.c_void_p()
     result = shell32.SHGetKnownFolderPath(folder_id, 0, None, ctypes.byref(pointer))
@@ -92,19 +80,16 @@ def desktop_directory() -> Path:
     finally:
         ole32.CoTaskMemFree(pointer)
 
-
 def launch_command(startup: bool = False) -> str:
     if getattr(sys, "frozen", False):
         arguments = [sys.executable]
     else:
         executable = Path(sys.executable)
         pythonw = executable.with_name("pythonw.exe")
-        arguments = [str(pythonw if pythonw.exists() else executable),
-                     str(Path(__file__).resolve().parent.parent / "main.py")]
+        arguments = [str(pythonw if pythonw.exists() else executable), str(Path(__file__).resolve().parent.parent / "main.py")]
     if startup:
         arguments.append("--startup")
     return subprocess.list2cmdline(arguments)
-
 
 def startup_enabled() -> bool:
     try:
@@ -113,7 +98,6 @@ def startup_enabled() -> bool:
             return value == launch_command(startup=True)
     except FileNotFoundError:
         return False
-
 
 def set_startup(enabled: bool) -> None:
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
@@ -125,10 +109,8 @@ def set_startup(enabled: bool) -> None:
             except FileNotFoundError:
                 pass
 
-
 class SingleInstance:
-    """用会话内命名事件唤醒已有进程，无端口监听，也不抢占端口。"""
-
+    """用命名事件唤醒已有进程。"""
     def __init__(self):
         self.mutex = kernel32.CreateMutexW(None, False, "Local\\HomeworkMemo.Mutex.v1")
         if not self.mutex:
@@ -138,15 +120,10 @@ class SingleInstance:
         if not self.event:
             kernel32.CloseHandle(self.mutex)
             raise ctypes.WinError(ctypes.get_last_error())
-
     def notify(self):
         kernel32.SetEvent(self.event)
-
     def requested(self) -> bool:
         return kernel32.WaitForSingleObject(self.event, 0) == 0
-
     def close(self):
         kernel32.CloseHandle(self.event)
         kernel32.CloseHandle(self.mutex)
-
-
